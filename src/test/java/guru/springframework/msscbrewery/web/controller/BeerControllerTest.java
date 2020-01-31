@@ -60,21 +60,28 @@ public class BeerControllerTest {
     void handlePost() throws Exception {
         BeerDto beerDto = validBeer;
         beerDto.setId(null);
-        BeerDto savedDto = BeerDto.builder().id(UUID.randomUUID()).beerName("New Beer").build();
-        String beerDtoJson = objectMapper.writeValueAsString(savedDto);
+        BeerDto savedDto = BeerDto.builder().id(UUID.randomUUID())
+                .beerName("New Beer")
+                .beerStyle("PALE_ALE")
+                .build();
+        String beerDtoJson = objectMapper.writeValueAsString(beerDto);
 
         given(beerService.saveNewBeer(any())).willReturn(savedDto);
 
-        mockMvc.perform(post("/api/v1/beer/").contentType(MediaType.APPLICATION_JSON).content(beerDtoJson))
+        mockMvc.perform(post("/api/v1/beer/")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(beerDtoJson))
                 .andExpect(status().isCreated());
     }
 
     @Test
     void handlePut() throws Exception {
         BeerDto beerDto = validBeer;
+        beerDto.setId(null);
         String beerDtoJson = objectMapper.writeValueAsString(beerDto);
 
-        mockMvc.perform(put("/api/v1/beer/" + validBeer.getId()).contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(put("/api/v1/beer/" + UUID.randomUUID())
+                .contentType(MediaType.APPLICATION_JSON)
                 .content(beerDtoJson))
                 .andExpect(status().isNoContent());
 
