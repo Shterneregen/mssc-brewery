@@ -8,11 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.ConstraintViolationException;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 @Validated
@@ -49,12 +46,5 @@ public class CustomerController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteCustomer(@NotNull @PathVariable UUID customerId) {
         customerService.deleteById(customerId);
-    }
-
-    @ExceptionHandler({ConstraintViolationException.class})
-    public ResponseEntity<List> validationErrorHandler(ConstraintViolationException e) {
-        List<String> errors = new ArrayList<>(e.getConstraintViolations().size());
-        e.getConstraintViolations().forEach(cv -> errors.add(cv.getPropertyPath() + " : " + cv.getMessage()));
-        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 }
