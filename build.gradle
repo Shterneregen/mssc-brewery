@@ -1,12 +1,14 @@
 plugins {
-    id 'org.springframework.boot' version '2.2.4.RELEASE'
-    id 'io.spring.dependency-management' version '1.0.9.RELEASE'
     id 'java'
     id 'idea'
-    id 'net.ltgt.apt' version '0.8'
+    id "org.springframework.boot" version "2.2.6.RELEASE"
+    id "io.spring.dependency-management" version "1.0.9.RELEASE"
+    id "net.ltgt.apt" version "0.20"
+    id "org.asciidoctor.convert" version "2.4.0"
 }
 
 ext {
+    set("snippetsDir", file("build/generated-snippets"))
     mapstructVersion = "1.3.1.Final"
 }
 
@@ -42,9 +44,56 @@ dependencies {
     )
     testImplementation('org.springframework.boot:spring-boot-starter-test') {
         exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+        exclude group: "junit", module: "junit"
     }
+    testImplementation(
+            "org.mockito:mockito-junit-jupiter:3.3.3",
+            "org.springframework.restdocs:spring-restdocs-mockmvc"
+    )
+    testAnnotationProcessor "org.mapstruct:mapstruct-processor:$mapstructVersion"
 }
 
 test {
+    outputs.dir snippetsDir
     useJUnitPlatform()
 }
+
+asciidoctor {
+    println("asciidoctor task")
+    dependsOn test
+    sourceDir file('src/main/asciidoc')
+    outputDir "build/asciidoc"
+    inputs.dir snippetsDir
+    backends = ['html5']
+    options doctype: 'book'
+
+    attributes = [
+            'source-highlighter': 'highlightjs',
+            'imagesdir'         : './images',
+            'toc'               : 'left',
+            'toclevels'         : 3,
+            'numbered'          : '',
+            'icons'             : 'font',
+            'setanchors'        : '',
+            'idprefix'          : '',
+            'idseparator'       : '-',
+            'docinfo1'          : '',
+            'safe-mode-unsafe'  : '',
+            'allow-uri-read'    : '',
+            'snippets'          : snippetsDir,
+            linkattrs           : true,
+            encoding            : 'utf-8'
+    ]
+    sources {
+        include 'index.adoc'
+    }
+}
+
+task copyDocs(type: Copy) {
+    println("copyDocs task")
+    from "$buildDir/asciidoc/html5"
+    into "$buildDir/classes/static/docs"
+}
+
+build.finalizedBy(asciidoctor)
+asciidoctor.finalizedBy(copyDocs)
